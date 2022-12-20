@@ -3,12 +3,13 @@
 const char SERIAL_HORIZONTAL = 'H'; // Lettre de position Front pour le calibrage des moteurs
 const char SERIAL_VERTICAL = 'V';
 char serial_action;
-char serial_number_value[5]; // TODO check number of index for security
+String serial_number_value = ""; // TODO check number of index for security
 int indexAction = 0;
 unsigned long last_serial_millis;
 
-const unsigned long DELAY_NO_SERIAL_GO_RANDOM = 3000;
+const unsigned long DELAY_NO_SERIAL_GO_RANDOM = 10000;
 
+int HorizontalMovementRange[7] = {120, 110, 100, 90, 80, 70, 60};
 int HorizontalLeft = 60;
 int HorizontalMiddle = 90;
 int HorizontalRight = 120;
@@ -17,6 +18,7 @@ int HorizontalCurrent = -1;
 const int SERVO1_PIN = 3;
 Servo servo1;
 
+int VerticalMovementRange[7] = {100, 90, 80, 70, 60, 50, 40};
 int VerticalTop = 100;
 int VerticalMiddle = 70;
 int VerticalBottom = 40;
@@ -47,7 +49,7 @@ bool eyesClosed = false;
 unsigned long delay_blink_millis;
 const unsigned long DELAY_BLINK = 200;
 unsigned long delay_between_blink_millis;
-const unsigned long DELAY_BETWEEN_BLINK = 3000;
+unsigned long DELAY_BETWEEN_BLINK = 3000;
 
 unsigned long delay_between_random_move_millis;
 const unsigned long DELAY_BETWEEN_RANDOM_MOVE = 3000;
@@ -76,22 +78,26 @@ void loop()
 {
   // put your main code here, to run repeatedly:
 
-  //manageSerialMovements();
+  manageSerialMovements();
 
-  /*if (millis() - last_serial_millis > DELAY_NO_SERIAL_GO_RANDOM)
+  if (millis() - last_serial_millis > DELAY_NO_SERIAL_GO_RANDOM)
   {
+    
     if (millis() - delay_between_blink_millis > DELAY_BETWEEN_BLINK && !pendingBlink)
     {
+      Serial.println("blink random");
       blinkEyes();
       delay_between_blink_millis = millis();
+      refreshRandomBlinkDelay();
     }
 
-    if (!pendingBlink && millis() - delay_between_random_move_millis > DELAY_BETWEEN_RANDOM_MOVE)
+    if (pendingBlink == false && millis() - delay_between_random_move_millis > DELAY_BETWEEN_RANDOM_MOVE)
     {
+      Serial.println("move random");
       setRandomTargets();
       delay_between_random_move_millis = millis();
     }
-  }*/
+  }
 
   performBlinkEyes();
 
@@ -103,29 +109,23 @@ void manageSerialMovements()
   while (Serial.available() > 0)
   {
     char storageActionChar = Serial.read();
-
+    Serial.print("serial received");
+    Serial.println(storageActionChar);
+    Serial.println(indexAction);
+    Serial.println(storageActionChar);
     if (storageActionChar == SERIAL_HORIZONTAL || storageActionChar == SERIAL_VERTICAL)
     {
       serial_action = storageActionChar;
     }
     else if (storageActionChar == ';')
     {
-
-      if (indexAction == 4)
-      {
-        setSerialTargetMovements();
-      }
+      setSerialTargetMovements();
 
       clearSerialActionData();
     }
     else
     {
-      if (indexAction < 4)
-      {
-        serial_number_value[indexAction] = storageActionChar;
-        indexAction++;
-        serial_number_value[indexAction] = '\0';
-      }
+        serial_number_value += (char)storageActionChar;
     }
 
     last_serial_millis = millis();
@@ -134,26 +134,28 @@ void manageSerialMovements()
 
 void setSerialTargetMovements()
 {
-  int valueNumeric = atoi(serial_number_value);
-
-  if (serial_action == SERIAL_HORIZONTAL)
-  {
-    // TODO convert index to value
-    HorizontalTarget = valueNumeric;
-  }
-  else if (serial_action == SERIAL_VERTICAL)
-  {
-    // TODO convert index to value
-    VerticalTarget = valueNumeric;
+  int valueNumeric = serial_number_value.toInt();
+  Serial.print("serial action");
+  Serial.println(valueNumeric);
+  if(valueNumeric < 7 && valueNumeric > -1){
+    
+    if (serial_action == SERIAL_HORIZONTAL)
+    {
+      Serial.println("horizontal serial");
+      setHorizontalTargetFromRange(valueNumeric);
+    }
+    else if (serial_action == SERIAL_VERTICAL)
+    {
+      Serial.println("vertical serial");
+      setVerticalTargetFromRange(valueNumeric);
+    }
   }
 }
 
 void clearSerialActionData()
 {
-  for (int i = 0; i < 3; i++)
-  {
-    serial_number_value[i] = 0;
-  }
+  serial_number_value = "";
+
   indexAction = 0;
   serial_action = -1;
 }
@@ -169,13 +171,11 @@ void performBlinkEyes()
   {
     if (eyesClosed && (millis() - delay_between_blink_millis > DELAY_BLINK))
     {
-      Serial.println("blink step 2");
       openEyes();
       pendingBlink = false;
     }
     else if(eyesClosed == false)
     {
-      Serial.println("blink step 1");
       closeEyes();
       delay_between_blink_millis = millis();
     }
@@ -184,7 +184,27 @@ void performBlinkEyes()
 
 void setRandomTargets()
 {
-  // TODO
+  int horizontalRandom = random(0, 6);
+  int verticalRandom = random(0, 6);
+
+  setHorizontalTargetFromRange(horizontalRandom);
+  setVerticalTargetFromRange(verticalRandom);
+}
+
+void setHorizontalTargetFromRange(int index){
+
+  HorizontalTarget = HorizontalMovementRange[index];
+
+  Serial.print("H: ");
+  Serial.println(HorizontalTarget);
+}
+
+void setVerticalTargetFromRange(int index){
+
+  VerticalTarget = VerticalMovementRange[index];
+
+  Serial.print("V: ");
+  Serial.println(VerticalTarget);
 }
 
 void performMovments()
@@ -210,6 +230,10 @@ void moveVertical()
     servo2.write(VerticalTarget);
     VerticalCurrent = VerticalTarget;
   }
+}
+
+void refreshRandomBlinkDelay(){
+  DELAY_BETWEEN_BLINK = random(3000, 6000);
 }
 
 void openEyes()
