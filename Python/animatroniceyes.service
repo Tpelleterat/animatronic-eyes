@@ -1,0 +1,12 @@
+[Unit]
+Description=Animatronic eyes face detection
+After=multi-user.target
+
+[Service]
+Type=simple
+User=eyes
+Restart=always
+ExecStart=/usr/bin/python3 /home/eyes/EyesPython/Python/main.py
+
+[Install]
+WantedBy=multi-user.target
