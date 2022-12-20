@@ -9,7 +9,7 @@ unsigned long last_serial_millis;
 
 const unsigned long DELAY_NO_SERIAL_GO_RANDOM = 10000;
 
-int HorizontalMovementRange[7] = {120, 110, 100, 90, 80, 70, 60};
+int HorizontalMovementRange[13] = {120, 115, 110, 105, 100, 95, 90, 85, 80, 75, 70, 65, 60};
 int HorizontalLeft = 60;
 int HorizontalMiddle = 90;
 int HorizontalRight = 120;
@@ -18,7 +18,7 @@ int HorizontalCurrent = -1;
 const int SERVO1_PIN = 3;
 Servo servo1;
 
-int VerticalMovementRange[7] = {100, 90, 80, 70, 60, 50, 40};
+int VerticalMovementRange[13] = {100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40};
 int VerticalTop = 100;
 int VerticalMiddle = 70;
 int VerticalBottom = 40;
@@ -137,7 +137,7 @@ void setSerialTargetMovements()
   int valueNumeric = serial_number_value.toInt();
   Serial.print("serial action");
   Serial.println(valueNumeric);
-  if(valueNumeric < 7 && valueNumeric > -1){
+  if(valueNumeric < 13 && valueNumeric > -1){
     
     if (serial_action == SERIAL_HORIZONTAL)
     {

@@ -20,8 +20,8 @@ def program():
             face_cascade = cv2.CascadeClassifier(filePath)
 
             vid = cv2.VideoCapture(0)
-            screenPartWidth  = vid.get(cv2.CAP_PROP_FRAME_WIDTH) / 7
-            screenPartHeight = vid.get(cv2.CAP_PROP_FRAME_HEIGHT) / 7
+            screenPartWidth  = vid.get(cv2.CAP_PROP_FRAME_WIDTH) / 14
+            screenPartHeight = vid.get(cv2.CAP_PROP_FRAME_HEIGHT) / 14
 
             try:
 
@@ -36,7 +36,7 @@ def program():
                     for (x,y,w,h) in faces:
 
                         pointX = x + w/2
-                        pointY = y + h/2
+                        pointY = y
 
                         horizontalZone = int(pointX / screenPartWidth)
                         verticalZone = int(pointY / screenPartHeight)
@@ -56,8 +56,6 @@ def program():
                         if(cmd != ""):
                             #print(cmd)
                             arduino.write(cmd.encode())
-
-                        cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
 
                         break
 
