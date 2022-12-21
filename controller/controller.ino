@@ -10,6 +10,7 @@ unsigned long last_serial_millis;
 const unsigned long DELAY_NO_SERIAL_GO_RANDOM = 10000;
 
 int HorizontalMovementRange[13] = {120, 115, 110, 105, 100, 95, 90, 85, 80, 75, 70, 65, 60};
+int HorizontalMovementSpeedRange[7] = {120, 110, 100, 90, 80, 70, 60};
 int HorizontalLeft = 60;
 int HorizontalMiddle = 90;
 int HorizontalRight = 120;
@@ -19,6 +20,7 @@ const int SERVO1_PIN = 3;
 Servo servo1;
 
 int VerticalMovementRange[13] = {100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40};
+int VerticalMovementSpeedRange[7] = {100, 90, 80, 70, 60, 50, 40};
 int VerticalTop = 100;
 int VerticalMiddle = 70;
 int VerticalBottom = 40;
@@ -56,8 +58,9 @@ const unsigned long DELAY_BETWEEN_RANDOM_MOVE = 3000;
 
 void setup()
 {
-  // put your setup code here, to run once:
   Serial.begin(9600);
+  
+  randomSeed(analogRead(A1));
 
   servo1.attach(SERVO1_PIN);
   servo2.attach(SERVO2_PIN);
@@ -76,16 +79,12 @@ void setup()
 
 void loop()
 {
-  // put your main code here, to run repeatedly:
-
   manageSerialMovements();
 
   if (millis() - last_serial_millis > DELAY_NO_SERIAL_GO_RANDOM)
   {
-    
     if (millis() - delay_between_blink_millis > DELAY_BETWEEN_BLINK && !pendingBlink)
     {
-      Serial.println("blink random");
       blinkEyes();
       delay_between_blink_millis = millis();
       refreshRandomBlinkDelay();
@@ -93,7 +92,6 @@ void loop()
 
     if (pendingBlink == false && millis() - delay_between_random_move_millis > DELAY_BETWEEN_RANDOM_MOVE)
     {
-      Serial.println("move random");
       setRandomTargets();
       delay_between_random_move_millis = millis();
     }
@@ -109,10 +107,7 @@ void manageSerialMovements()
   while (Serial.available() > 0)
   {
     char storageActionChar = Serial.read();
-    Serial.print("serial received");
-    Serial.println(storageActionChar);
-    Serial.println(indexAction);
-    Serial.println(storageActionChar);
+
     if (storageActionChar == SERIAL_HORIZONTAL || storageActionChar == SERIAL_VERTICAL)
     {
       serial_action = storageActionChar;
@@ -135,18 +130,15 @@ void manageSerialMovements()
 void setSerialTargetMovements()
 {
   int valueNumeric = serial_number_value.toInt();
-  Serial.print("serial action");
-  Serial.println(valueNumeric);
+
   if(valueNumeric < 13 && valueNumeric > -1){
     
     if (serial_action == SERIAL_HORIZONTAL)
     {
-      Serial.println("horizontal serial");
       setHorizontalTargetFromRange(valueNumeric);
     }
     else if (serial_action == SERIAL_VERTICAL)
     {
-      Serial.println("vertical serial");
       setVerticalTargetFromRange(valueNumeric);
     }
   }
@@ -187,24 +179,28 @@ void setRandomTargets()
   int horizontalRandom = random(0, 6);
   int verticalRandom = random(0, 6);
 
-  setHorizontalTargetFromRange(horizontalRandom);
-  setVerticalTargetFromRange(verticalRandom);
+  setHorizontalTargetSpeedFromRange(horizontalRandom);
+  setVerticalTargetFromSpeedRange(verticalRandom);
 }
 
 void setHorizontalTargetFromRange(int index){
 
   HorizontalTarget = HorizontalMovementRange[index];
+}
 
-  Serial.print("H: ");
-  Serial.println(HorizontalTarget);
+void setHorizontalTargetSpeedFromRange(int index){
+
+  HorizontalTarget = HorizontalMovementSpeedRange[index];
 }
 
 void setVerticalTargetFromRange(int index){
 
   VerticalTarget = VerticalMovementRange[index];
+}
 
-  Serial.print("V: ");
-  Serial.println(VerticalTarget);
+void setVerticalTargetFromSpeedRange(int index){
+
+  VerticalTarget = VerticalMovementSpeedRange[index];
 }
 
 void performMovments()
