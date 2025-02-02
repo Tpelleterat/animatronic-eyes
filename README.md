@@ -1,5 +1,7 @@
 # animatronic-eyes
 
+[![Animatronic eyes face detection](/docs/contents/video_thumbnail.png)](https://youtu.be/BoqDVRVQaFI)
+
 ## How to develop
 
 To update code in Raspberry Pi, move folder files to card :
